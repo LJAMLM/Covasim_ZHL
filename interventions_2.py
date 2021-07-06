@@ -370,11 +370,11 @@ if __name__ == '__main__':
     # s19 = cv.Sim(pars=pars, interventions=close_community, label='Close community')
     # s20 = cv.Sim(pars=pars, interventions=[close_schools, close_community, close_work],
     #              label='Partial lockdown')
-    # s21 = cv.Sim(pars=pars, interventions=[close_schools, close_work, close_community], label='Lockdown for 2 months')
-    # s22 = cv.Sim(pars=pars, interventions=partial_lockdown, label='Partial lockdown 2')
-    s23 = cv.Sim(pars=pars, interventions=[partial_lockdown], label='Combo')
+    s21 = cv.Sim(pars=pars, interventions=[close_schools, close_work, close_community], label='Lockdown for 2 months')
+    s22 = cv.Sim(pars=pars, interventions=partial_lockdown, label='Partial lockdown 2')
+    # s23 = cv.Sim(pars=pars, interventions=[partial_lockdown], label='Combo')
 
-    msim_interventions = cv.MultiSim([s1, s23])
+    msim_interventions = cv.MultiSim([s1, s21, s22])
     msim_interventions.run()
     for _sim in msim_interventions.sims:
         print(_sim.brief())
