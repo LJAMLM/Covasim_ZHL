@@ -2,7 +2,6 @@ import numpy as np
 import covasim as cv
 import pandas as pd
 import pylab as pl
-from functools import reduce
 import sciris as sc
 
 cv.options.set(dpi=100, show=False, close=True, verbose=0)
@@ -21,7 +20,7 @@ kakuma_pop_survey = {
     '38-47': 14482,
     '48-57': 4986,
     '58-67': 1899,
-    '68-77': 594,
+    '68+': 594,
 }
 
 kalobeyei_pop_survey = {
@@ -33,7 +32,7 @@ kalobeyei_pop_survey = {
     '38-47': 2497,
     '48-57': 763,
     '58-67': 416,
-    '68-77': 69,
+    '68+': 69,
 }
 
 # Treat Kakuma and Kalobeyei together
@@ -45,8 +44,9 @@ kakuma_kalobeyei_pop_survey = {
     '28-37': 27500,
     '38-47': 16724,
     '48-57': 5517,
-    '58-67': 2414,
-    '68-77': 603,
+    '58+': 3017,
+    # '58-67': 2414,
+    # '68+': 603,
 }
 
 kakuma_hhsize = 6.3  # UNHCR kakuma pdf
@@ -77,8 +77,8 @@ pars = {
     'start_day': '2020-05-25',
     'end_day': '2020-10-25',
     'contacts': {'s': 60, 'w': 10, 'c': 40},  # 30 mainly for children with disabilities, more than 100 in class
-    # 'n_beds_hosp': 20,
-    # 'n_beds_icu': 0,
+    'n_beds_hosp': 20,
+    'n_beds_icu': 0,
 }
 
 monthly_data = pd.DataFrame({
@@ -379,7 +379,8 @@ if __name__ == '__main__':
     default_plot = s1.plot(
         # to_plot=['new_infections', 'cum_infections', 'new_deaths', 'cum_deaths', 'cum_tests',
         #          'new_quarantined', 'cum_severe', 'cum_critical'],
-        fig_args=dict(figsize=(12, 9)), do_save=True, fig_path=r'default.png')
+        # fig_args=dict(figsize=(12, 9)),
+        do_save=True, fig_path='default.png')
     default_plot.show()
 
     # # Default vs intervention

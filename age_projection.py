@@ -1,6 +1,6 @@
 import pandas as pd
-from matplotlib import pyplot as plt
 import seaborn as sns
+from matplotlib import pyplot as plt
 
 all_waves = pd.read_csv("Anonymized HH Data v1.1.csv", low_memory=False)
 all_waves.drop_duplicates(subset=["hhid", "s2_q8_migrresidence"], inplace=True)
@@ -51,7 +51,7 @@ print('Kakuma')
 for i in range(18, oldest_kaku + 1, 10):
     print(i, i + 9, round(len(kaku_all_waves[(kaku_all_waves["s2_q2_age"] >= i) &
                                              (kaku_all_waves["s2_q2_age"] <= i + 9)]) /
-                          (len(kaku_all_waves)) * nr_adults_kaku))
+                          len(kaku_all_waves) * nr_adults_kaku))
 
 print('Kalobeyei')
 for i in range(18, oldest_kalo + 1, 10):
