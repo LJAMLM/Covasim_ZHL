@@ -4,80 +4,55 @@ import pandas as pd
 import pylab as pl
 from functools import reduce
 import sciris as sc
-import itertools
 
 cv.options.set(dpi=100, show=False, close=True, verbose=0)
 
-kakuma_pop = {
-    '0-4': 20303,
-    '5-11': 33641,
-    '12-17': 30947,
-    '18-59': 69158,
-    '60+': 2183,
-}
+pop_kakuma_may = 156232
+pop_kalobeyei_may = 38081
+pop_kakuma_kalobeyei_may = 194313
 
-kalobeyei_pop = {
-    '0-4': 6286,
-    '5-11': 11259,
-    '12-17': 7394,
-    '18-59': 12794,
-    '60+': 348,
-}
-
+# Treat Kakuma and Kalobeyei separately
 kakuma_pop_survey = {
     '0-4': 20303,
     '5-11': 33641,
     '12-17': 30947,
-    '18-27': 27282,
-    '28-37': 20425,
-    '38-47': 13422,
-    '48-57': 4085,
-    '58+': 2918,
+    '18-27': 28252,
+    '28-37': 21129,
+    '38-47': 14482,
+    '48-57': 4986,
+    '58-67': 1899,
+    '68-77': 594,
 }
 
 kalobeyei_pop_survey = {
     '0-4': 6286,
     '5-11': 11259,
     '12-17': 7394,
-    '18-27': 4409,
-    '28-37': 4787,
-    '38-47': 2519,
-    '48-57': 630,
-    '58+': 504,
+    '18-27': 4508,
+    '28-37': 4889,
+    '38-47': 2497,
+    '48-57': 763,
+    '58-67': 416,
+    '68-77': 69,
 }
 
-pop_kakuma_may = sum(kakuma_pop.values())  # 156232
-pop_kalobeyei_may = sum(kalobeyei_pop.values())  # 38081
-pop_kakuma_kalobeyei_may = pop_kakuma_may + pop_kalobeyei_may  # 194313
-
-# Add kakuma dict to kalobeyei dict.
-lst_kakuma_kalobeyei = [kakuma_pop, kalobeyei_pop]
-kakuma_kalobeyei_pop = reduce(lambda x, y: dict((k, v + y[k]) for k, v in x.items()), lst_kakuma_kalobeyei)
-
-# kakuma_kalobeyei_pop = {
-#     '0-4': 26589,
-#     '5-11': 44900,
-#     '12-17': 38341,
-#     '18-59': 81952,
-#     '60+': 2531,
-# }
-
+# Treat Kakuma and Kalobeyei together
 kakuma_kalobeyei_pop_survey = {
     '0-4': 26589,
     '5-11': 44900,
     '12-17': 38341,
-    '18-27': 30759,
-    '28-37': 26756,
-    '38-47': 16012,
-    '48-57': 4530,
-    '58+': 3371,
+    '18-27': 31724,
+    '28-37': 27500,
+    '38-47': 16724,
+    '48-57': 5517,
+    '58-67': 2414,
+    '68-77': 603,
 }
 
-kakuma_hhsize = 6.3
-kalobeyei_hhsize = 5.9
+kakuma_hhsize = 6.3  # UNHCR kakuma pdf
+kalobeyei_hhsize = 5.9  # UNHCR kalobeyei pdf
 kakuma_kalobeyei_hhsize = (kakuma_hhsize * pop_kakuma_may + kalobeyei_hhsize * pop_kalobeyei_may) / \
                           (pop_kakuma_may + pop_kalobeyei_may)  # 6.222
-# kakuma_kalobeyei_household_size_survey = 6.132  # 5.863, 5.708
 
 cv.data.country_age_data.data['Kakuma'] = kakuma_pop_survey
 cv.data.country_age_data.data['Kalobeyei'] = kalobeyei_pop_survey
@@ -88,7 +63,7 @@ cv.data.household_size_data.data['Kalobeyei'] = kalobeyei_hhsize
 cv.data.household_size_data.data['Kakuma_Kalobeyei'] = kakuma_kalobeyei_hhsize
 
 underreporting_factor = 10
-nr_sectors = 100
+nr_sectors = 1
 
 # Try for Kakuma separately, Kalobeyei separately and combination of both
 pars = {
@@ -100,10 +75,10 @@ pars = {
     'n_imports': 0.18985,
     'use_waning': False,
     'start_day': '2020-05-25',
-    'end_day': '2021-05-25',
+    'end_day': '2020-10-25',
     'contacts': {'s': 60, 'w': 10, 'c': 40},  # 30 mainly for children with disabilities, more than 100 in class
-    'n_beds_hosp': 20,
-    'n_beds_icu': 0,
+    # 'n_beds_hosp': 20,
+    # 'n_beds_icu': 0,
 }
 
 monthly_data = pd.DataFrame({
@@ -126,37 +101,22 @@ monthly_data = pd.DataFrame({
 })
 
 monthly_data.to_csv('monthly_data.csv')
+tn_data = cv.test_num('data', symp_test=100)
 
 reduce_beta_workplace = cv.change_beta(days=[7], changes=[0.5], layers='w')
 reduce_beta_schools = cv.change_beta(days=[7], changes=[0.5], layers='s')
 reduce_beta_community = cv.change_beta(days=[7], changes=[0.5], layers='c')
-# reduce_transmission = cv.change_beta(days=[7], changes=[0.5], layers=['s', 'w', 'c'])
-# reduce_nr_of_contacts = cv.clip_edges(days=[30, 60, 90, 120], changes=[0.0, 0.1, 0.2, 0.3], layers=['s', 'w', 'c'])
+
 close_schools = cv.clip_edges(days=[7], changes=[0.33], layers='s')
 close_community = cv.clip_edges(days=[7], changes=[0.15], layers='c')
 close_work = cv.clip_edges(days=[7], changes=[0.33], layers='w')
-# close_schools_and_community = cv.clip_edges(days=[7, 44], changes=[0.0, 1.0], layers=['s', 'c'])
-# close_schools_work_and_community = cv.clip_edges(days=7, changes=0.0, layers=['s', 'w', 'c'])
-
-# tn_data = cv.test_num('data', symp_test=100)
 
 # PCR test sensitivity decreases per day of symptom onset, >90% in first 5 days (Miller, Aug 2020)
 # RT PCR test sensitivity: 0.777 (Padhye, April 2020)
 # rapid antigen test: 81% of PCR
-tp = cv.test_prob(symp_prob=0.33, symp_quar_prob=0.33, start_day=7, test_delay=2, sensitivity=0.7, loss_prob=0.05)
-tp2 = tp
+tp = cv.test_prob(symp_prob=0.33, symp_quar_prob=0.33, start_day=7, test_delay=2, sensitivity=0.9, loss_prob=0.05)
+tp2 = cv.test_prob(symp_prob=0.33, symp_quar_prob=0.33, start_day=180, test_delay=1, sensitivity=0.729, loss_prob=0.05)
 ct = cv.contact_tracing(trace_probs=dict(h=0.9, s=0.3, w=0.4, c=0.1), trace_time=dict(h=0, s=1, w=1, c=2))
-
-# vaccine = cv.simple_vaccine(days=[30, 60], cumulative=[0.5, 0.4], prob=0.6, rel_sus=0.5, rel_symp=0.1)
-
-# # 13903 arrivals in 2019: 38.09 refugees per day
-# # 3539 arrivals from 1 January to 14 March 2020: 49.15 refugees per day
-# # 309 arrivals from 31 May to 30 September 2020: 2.53 refugees per day
-# # Assume a fixed amount of imported infections per week, currently 1
-# days_lst = [[i, i + 1] for i in range(365) if i % 7 == 0]
-# days = list(itertools.chain(*days_lst))
-# vals = [1 if i % 7 == 0 else 0 for i in range(len(days))]
-# weekly_imports = cv.dynamic_pars(n_imports=dict(days=days, vals=vals), do_plot=False)
 
 more_beds = cv.dynamic_pars(n_beds_hosp=dict(days=7, vals=100000))
 
@@ -180,6 +140,7 @@ def vaccinate_by_age(sim):
     return output
 
 
+# vaccine = cv.simple_vaccine(days=[30, 60], cumulative=[0.5, 0.4], prob=0.6, rel_sus=0.5, rel_symp=0.1)
 # vaccine2 = cv.simple_vaccine(days=30, rel_sus=0.8, rel_symp=0.06, subtarget=vaccinate_by_age)
 
 
@@ -390,8 +351,9 @@ def run_orig_sim_analyzer():
 
 
 if __name__ == '__main__':
+    # # Initialize and plot the population
     # plot_population()
-    #
+
     # # Same probability of transmission
     # run_same_beta()
     #
@@ -403,47 +365,32 @@ if __name__ == '__main__':
 
     s1 = cv.Sim(pars=pars, label='Default')
     s2 = cv.Sim(pars=pars, interventions=shielding, label='Shielding for 60+ age group')
-    # s3 = cv.Sim(pars=pars, datafile="monthly_data.csv", interventions=[cv.test_num(daily_tests='data'), ct],
-    #             label='Test + contact_tracing')
-    # s4 = cv.Sim(pars=pars, interventions=reduce_transmission, label='Reduce transmission')
-    # s5 = cv.Sim(pars=pars, interventions=reduce_nr_of_contacts, label='Reduce contacts / close buildings')
-    # s6 = cv.Sim(pars=pars, interventions=[reduce_transmission, reduce_nr_of_contacts],
-    #             label='Reduce contacts and use masks in buildings')
-    # s7 = cv.Sim(pars=pars, datafile='monthly_data.csv', interventions=[tn_data, ct],
-    #             label='Number of tests from data')
-    # s8 = cv.Sim(pars=pars, interventions=tp, label='Probability-based testing')
     s9 = cv.Sim(pars=pars, interventions=[tp, ct], label='Contact tracing')
-    # s10 = cv.Sim(pars=pars, interventions=vaccine, label='Simple vaccine')
-    # s11 = cv.Sim(pars=pars, interventions=vaccine2, label='Age-dependent vaccination')
-    # s12 = cv.Sim(pars=pars, interventions=imports, label='With imported infections')
-    # s13 = cv.Sim(pars=pars, interventions=db, label='Dynamic beta')
-    # s14 = cv.Sim(pars=pars, interventions=dynamic_imports, label='Dynamic imports')
-    # s15 = cv.Sim(pars=pars, interventions=protect, label='Protect the elderly')
-    # s16 = cv.Sim(pars=pars, interventions=[shielding, reduce_transmission, reduce_nr_of_contacts],
-    #              label='Combo shielding, reducing transmission & partially closing places')
-    # s17 = cv.Sim(pars=pars, interventions=close_schools, label='Close schools')
-    # s18 = cv.Sim(pars=pars, interventions=close_work, label='Close work')
-    # s19 = cv.Sim(pars=pars, interventions=close_community, label='Close community')
     s20 = cv.Sim(pars=pars, interventions=[close_schools, close_community, close_work],
                  label='Partial closure of schools, work and community')
-    # s21 = cv.Sim(pars=pars, interventions=[close_schools, close_work, close_community], label='Lockdown for 2 months')
-    # s22 = cv.Sim(pars=pars, interventions=close_schools_work_and_community, label='Close schools, work and community')
     s23 = cv.Sim(pars=pars, interventions=[reduce_beta_community, reduce_beta_workplace, reduce_beta_schools, tp, ct,
                                            close_schools, close_community, close_work], label='Combo')
-    # s24 = cv.Sim(pars=pars, interventions=[close_schools_and_community, reduce_transmission, shielding, tp, ct],
-    #              label='Combo')
     s25 = cv.Sim(pars=pars, interventions=[reduce_beta_community, reduce_beta_workplace, reduce_beta_schools],
                  label='Transmission reduction in schools, work and community')
 
-    # Default vs intervention
-    msim_interventions = cv.MultiSim([s1, s23])
-    msim_interventions.run()
-    for _sim in msim_interventions.sims:
-        print(_sim.brief)
-    interventions_plot = msim_interventions.plot(
-        to_plot=['new_infections', 'cum_infections', 'new_deaths', 'cum_deaths', 'cum_tests', 'new_quarantined'],
-        fig_args=dict(figsize=(9, 9)), do_save=True, fig_path=r'default_vs_combo.png')
-    interventions_plot.show()
+    # Default
+    s1.run()
+    print(s1.brief)
+    default_plot = s1.plot(
+        # to_plot=['new_infections', 'cum_infections', 'new_deaths', 'cum_deaths', 'cum_tests',
+        #          'new_quarantined', 'cum_severe', 'cum_critical'],
+        fig_args=dict(figsize=(12, 9)), do_save=True, fig_path=r'default.png')
+    default_plot.show()
+
+    # # Default vs intervention
+    # msim_interventions = cv.MultiSim([s1, s23])
+    # msim_interventions.run()
+    # for _sim in msim_interventions.sims:
+    #     print(_sim.brief)
+    # interventions_plot = msim_interventions.plot(
+    #     to_plot=['new_infections', 'cum_infections', 'new_deaths', 'cum_deaths', 'cum_tests', 'new_quarantined'],
+    #     fig_args=dict(figsize=(9, 9)), do_save=True, fig_path=r'default_vs_combo.png')
+    # interventions_plot.show()
 
     # # Only intervention
     # s23.run()
