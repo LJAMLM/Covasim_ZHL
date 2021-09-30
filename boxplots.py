@@ -27,6 +27,7 @@ ax1.set_xticks(range(1, 11))
 plt.xlabel('Number of runs')
 plt.ylabel('Number of cumulative infections')
 plt.tight_layout()
+plt.savefig('infections_dist.png')
 plt.show()
 
 # Deaths
@@ -55,4 +56,5 @@ ax2.set_xticks(range(1, 11))
 plt.xlabel('Number of runs')
 plt.ylabel('Number of cumulative deaths')
 plt.tight_layout()
+plt.savefig('deaths_dist.png')
 plt.show()
